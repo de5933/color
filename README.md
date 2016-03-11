@@ -1,7 +1,6 @@
 # color
 A Javascript Color object
-Color object
-RGB Color with three 8-bit channels
+RGB Color with three 8-bit channels.
 Each instance expresses color in three different ways:
 - Hexidecimal: A 6-character string
 - FlatInteger: A 24-bit integer encoding three bytes
