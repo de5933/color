@@ -26,6 +26,8 @@ var Color = (function(){
 		this.g=0;
 		this.b=0;
 		
+        var success = false;
+        
 		if (arguments.length == 1) {
 			var c = arguments[0];
 			
@@ -40,6 +42,8 @@ var Color = (function(){
 				this.r = rgb.r;
 				this.g = rgb.g;
 				this.b = rgb.b;
+                
+                success = true;
 			}
 			
 			// Flat integer
@@ -53,6 +57,8 @@ var Color = (function(){
 				this.r = rgb.r;
 				this.g = rgb.g;
 				this.b = rgb.b;
+                
+                success = true;
 			}
 			
 			else if (typeof(c) == 'object') {
@@ -64,10 +70,12 @@ var Color = (function(){
 					var r = c.r;
 					var g = c.g;
 					var b = c.b;
+                    
 					return Color.call(this, r,g,b);
-					
 				}
 			}
+            
+            
 		}
 		else if (arguments.length == 3) {
 			var r = arguments[0];
@@ -85,9 +93,14 @@ var Color = (function(){
 				this.int = cnv.rgb_int(r,g,b);
 				// Convert to hex
 				this.hex = cnv.int_hex(this.int);
+                
+                success = true;
 			}
 			
 		}
+        
+        if (!success) 
+            err('Constructor arguments not recognized: ' + JSON.stringify(arguments));
 		
 		// Attach member functions
 		this.toString = function() 	{return util.tostr(this);}
@@ -155,8 +168,7 @@ var Color = (function(){
 			return new Color(Math.floor(Math.random()*BYTE3));
 		}
 	};
-	
-	
+		
 	/*** Validation ***/
 	var vld = {
 			
@@ -275,6 +287,11 @@ var Color = (function(){
 		}
 	};
 
+    /*** Error Handling ***/
+    function err(message) {
+        console.error(message);
+    }
+    
 	/*** Static Properties ***/
 	Color.util = util;
 	
@@ -300,17 +317,18 @@ var Color = (function(){
 	return Color;
 })();
 
-
 var rgb = function(r,g,b) {
     return new Color(r,g,b);
 };
 
+// #19CB97
+// 162.4, 0.779, 0.447
+// 162.4 198.645, 113.985
 function getHSL(color) {
-    var hsl = {
-        h: 0,
-        s: 0,
-        l: 0
-    };
+    var H = 0;
+    var S = 0;
+    var L = 0;
+    
     var r = color.r;
     var g = color.g;
     var b = color.b;
@@ -318,6 +336,7 @@ function getHSL(color) {
     var min = 255;
     var max = 0;
     var arr = [r,g,b];
+    
     for (var i in arr) {
         if (arr[i] > max) max = arr[i];
         if (arr[i] < min) min = arr[i];
@@ -337,17 +356,21 @@ function getHSL(color) {
         H = ((r-g)/chroma) + 4;
     }
     
-    hsl.h = 60*H;
-    hsl.l = (max + min) / 2;
+    H = 60*H;
+    L = (max + min) / 2;
     
-    if (hsl.l <= 127.5) {
-        hsl.s = chroma/(2*hsl.l);
+    if (L <= 127.5) {
+        S = 255*chroma/(2*L);
     }
     else {
-        hsl.s = chroma/(2*255 - 2*hsl.l);
+        S = 255*chroma/(2 - 2*L);
     }
     
-    return hsl;
+    return {
+        h: H,
+        s: S,
+        l: L
+    };
 }
 
 
