@@ -11,6 +11,11 @@
  *  toString('rgb') returns the rgb representation as a string.
  *  
  *  This allows shortcuts like document.body.style.color = new Color('ff7700');
+ * 
+ * TODO: 
+ *  - Add alpha channel
+ *  - Integrate HSL and HSV calculations
+ *  - Add handy methods like lighter() darker()
  */
 
 var Color = (function(){
