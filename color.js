@@ -16,6 +16,7 @@
  *  - Add alpha channel
  *  - Integrate HSL and HSV calculations
  *  - Add handy methods like lighter() darker()
+ *  - Add a fuzz() function to randomize the color within a range
  */
 
 var Color = (function(){
@@ -250,6 +251,8 @@ var Color = (function(){
 			var i = parseInt(n);
 			if (i && i>BYTE)
 				i=BYTE;
+            if (i < 0)
+                i=0;
 			return i || 0;
 		}
 	}
@@ -297,6 +300,14 @@ var Color = (function(){
         console.error(message);
     }
     
+    window.rgb = function(r,g,b) {
+        return new Color(
+            parse.byte(r),
+            parse.byte(g),
+            parse.byte(b)
+        );
+    };
+    
 	/*** Static Properties ***/
 	Color.util = util;
 	
@@ -321,10 +332,6 @@ var Color = (function(){
 	/** Return constructor **/
 	return Color;
 })();
-
-var rgb = function(r,g,b) {
-    return new Color(r,g,b);
-};
 
 // #19CB97
 // 162.4, 0.779, 0.447
