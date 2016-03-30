@@ -321,14 +321,6 @@ var Color = (function(){
         console.error(message);
     }
     
-    window.rgb = function(r,g,b) {
-        return new Color(
-            parse.byte(r),
-            parse.byte(g),
-            parse.byte(b)
-        );
-    };
-    
 	/*** Static Properties ***/
 	Color.util = util;
 	
@@ -340,6 +332,22 @@ var Color = (function(){
 	Color.or = util.or;
 	Color.xor = util.xor;
 	Color.random = util.random;
+    
+    Color.rgb = function(r,g,b) {
+        return new Color(
+            parse.byte(r),
+            parse.byte(g),
+            parse.byte(b)
+        );
+    };
+    Color.rgba = function(r,g,b,a) {
+        return new Color(
+            parse.byte(r),
+            parse.byte(g),
+            parse.byte(b),
+            parse.byte(a)
+        );
+    };
 	
 	Color.WHITE = 	new Color(0xffffff);
 	Color.RED = 	new Color(0xff0000);
