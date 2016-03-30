@@ -31,6 +31,7 @@ var Color = (function(){
 		this.r=0;
 		this.g=0;
 		this.b=0;
+        this.a=1;
 		
         var success = false;
         
@@ -83,18 +84,20 @@ var Color = (function(){
             
             
 		}
-		else if (arguments.length == 3) {
+		else if (arguments.length == 3 || arguments.length == 4) {
 			var r = arguments[0];
 			var g = arguments[1];
 			var b = arguments[2];
-			
+			var a = arguments[3];
+            
 			// RGB
 			if (vld.rgb(r,g,b)) {
 				// Parse rgb
-				var rgb = parse.rgb(r,g,b);
-				this.r = rgb.r;
-				this.g = rgb.g;
-				this.b = rgb.b;
+				var rgba = parse.rgba(r,g,b,a);
+				this.r = rgba.r;
+				this.g = rgba.g;
+				this.b = rgba.b;
+                this.a = rgba.a;
 				// Convert to int
 				this.int = cnv.rgb_int(r,g,b);
 				// Convert to hex
@@ -120,13 +123,14 @@ var Color = (function(){
 		this.or = function(c) 		{return util.or(this, c);}
 		this.xor = function(c) 		{return util.xor(this, c);}
         this.rgb = function()       {return [this.r, this.g, this.b];}
+        this.rgba = function()       {return [this.r, this.g, this.b, this.r];}
 	}
 	
 	/*** Utilities ***/
 	var util = {
 		tostr: function toString(c, fmt) {
-			if (fmt && fmt == 'rgb') {
-				return 'rgb('+c.r+','+c.g+','+c.b+')';
+			if ( c.a<1 || (fmt && fmt == 'rgba') ) {
+				return 'rgba('+c.r+','+c.g+','+c.b+','+c.a+')';
 			}
 			else {
 				return '#' + c.hex;
@@ -229,31 +233,38 @@ var Color = (function(){
 		},
 		
 		int: function parseFlatInt(n) {
-            // Round to nearest valid value
-            if (n < 0)
-                return 0;
-            else if (n > BYTE3) {
-                return BYTE3;
-            }
-            else {
-                return n;
-            }
+            var i = parseInt(n);
+            if (isNull(i)) return 0;
+            return clamp(n, 0, BYTE3);
 		},
 		
 		rgb: function parseRGB(r,g,b) {
-			return { r: parse.byte(r), 
-					g: parse.byte(g), 
-					b: parse.byte(b)
+			return { 
+                r: parse.byte(r), 
+                g: parse.byte(g), 
+                b: parse.byte(b)
 			};
 		},
+        
+        rgba: function parseRGBA(r, g, b, a) {
+            return { 
+                r: parse.byte(r), 
+                g: parse.byte(g), 
+                b: parse.byte(b),
+                a: parse.unit(a)
+			};
+        },
+        
+        unit: function parseUnit(n) {
+            var i = parseFloat(n);
+            if (isNull(i)) return 1;
+            return clamp(i, 0, 1);
+        },
 		
 		byte: function parseByte(n) {
 			var i = parseInt(n);
-			if (i && i>BYTE)
-				i=BYTE;
-            if (i < 0)
-                i=0;
-			return i || 0;
+			if (isNull(i)) return 0;
+			return clamp(i, 0, BYTE);
 		}
 	}
 	
@@ -295,6 +306,16 @@ var Color = (function(){
 		}
 	};
 
+    function clamp(val, min, max) {
+        if (val > max) val = max;
+        if (val < min) val = min;
+        return val;
+    }
+    
+    function isNull(v) {
+        return (v==undefined) || isNaN(v) || !isFinite(v);
+    }
+    
     /*** Error Handling ***/
     function err(message) {
         console.error(message);
