@@ -357,6 +357,7 @@ var Color = (function(){
 	Color.CYAN = 	new Color(0x00ffff);
 	Color.MAGENTA = new Color(0xff00ff);
 	Color.BLACK = 	new Color(0x0);
+    Color.TRANSPARENT = new Color(0,0,0,0);
 	
 	/** Return constructor **/
 	return Color;
