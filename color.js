@@ -13,7 +13,6 @@
  *  This allows shortcuts like document.body.style.color = new Color('ff7700');
  * 
  * TODO: 
- *  - Add alpha channel
  *  - Integrate HSL and HSV calculations
  *  - Add handy methods like lighter() darker()
  *  - Add a fuzz() function to randomize the color within a range
@@ -103,18 +102,29 @@ var Color = (function(){
         };
         
         // Attach member functions
-        this.toString = function()  {return util.tostr(this);};
-        this.valueOf = function()   {return util.val(this);};
-        this.inv = function(c)      {return util.not(this);};
-        this.add = function(c)      {return util.add(this, c);};
-        this.avg = function(c)      {return util.avg(this, c);};
-        this.sub = function(c)      {return util.sub(this, c);};
-        this.not = function()       {return util.not(this);};
-        this.and = function(c)      {return util.and(this, c);};
-        this.or = function(c)       {return util.or(this, c);};
-        this.xor = function(c)      {return util.xor(this, c);};
-        this.rgb = function()       {return [this.r, this.g, this.b];};
-        this.rgba = function()      {return [this.r, this.g, this.b, this.r];};
+        this.toString = function()    {return util.tostr(this);};
+        this.valueOf = function()     {return util.val(this);};
+        this.rgb = function()         {return [this.r, this.g, this.b];};
+        this.rgba = function()        {return [this.r, this.g, this.b, this.r];};
+        
+        this.inv = function(c)        {return util.not(this);};
+        this.add = function(c)        {return util.add(this, c);};
+        this.avg = function(c)        {return util.avg(this, c);};
+        this.sub = function(c)        {return util.sub(this, c);};
+        this.not = function()         {return util.not(this);};
+        this.and = function(c)        {return util.and(this, c);};
+        this.or = function(c)         {return util.or(this, c);};
+        this.xor = function(c)        {return util.xor(this, c);};
+        
+        this.multiply = function(c)   {return blend.multiply(this, c);};
+        this.screen = function(c)     {return blend.screen(this, c);};
+        this.overlay = function(c)    {return blend.overlay(this, c);};
+        this.hardLight = function(c)  {return blend.hardLight(this, c);};
+        this.divide = function(c)     {return blend.divide(this, c);};
+        this.addition = function(c)   {return blend.addition(this, c);};
+        this.subtract = function(c)   {return blend.subtract(this, c);};
+        this.difference = function(c) {return blend.difference(this, c);};
+        
         this.clone = function()     {return util.clone(this);};
     }
     
@@ -308,9 +318,79 @@ var Color = (function(){
             return (parse.byte(r) << 16) + 
                     (parse.byte(g) << 8) + 
                     parse.byte(b);
+        },
+        
+        byte_unit: function byteToUnit(n) {
+            return parse.byte(n)/BYTE;
+        },
+        
+        unit_byte: function unitToByte(n) {
+            return parse.byte(n*BYTE);
         }
     };
 
+    /*** Blending ***/
+    
+    var blend = (function(){
+        
+        function makeBlender(op) {
+            return function(x,y){
+                return new Color(
+                    cnv.unit_byte( 
+                        op( cnv.byte_unit(x.r), cnv.byte_unit(y.r) )
+                    ),
+                    cnv.unit_byte( 
+                        op( cnv.byte_unit(x.g), cnv.byte_unit(y.g) )
+                    ),
+                    cnv.unit_byte( 
+                        op( cnv.byte_unit(x.b), cnv.byte_unit(y.b) )
+                    )
+                );
+            };
+        }
+        
+        return {
+            multiply: makeBlender(function(a, b){
+                return a*b;
+            }),
+            
+            screen: makeBlender(function(a, b){
+                return (1 - (1-a) * (1-b) );
+            }),
+            
+            overlay: makeBlender(function(a, b){
+                if (a < 0.5) {
+                    return (2 * a * b);
+                }
+                return ( 1 - 2 * (1-a) * (1-b) );
+            }),
+            
+            hardLight: makeBlender(function(a, b){
+                if (b < 0.5) {
+                    return (2 * b * a);
+                }
+                return ( 1 - 2 * (1-b) * (1-a) );
+            }),
+            
+            divide: makeBlender(function(a, b){
+                return a/b;
+            }),
+            
+            addition: makeBlender(function(a, b){
+                return a+b;
+            }),
+            
+            subtract: makeBlender(function(a, b){
+                return a-b;
+            }),
+            
+            difference: makeBlender(function(a, b){
+                return a>b ? a-b : b-a;
+            }),
+            
+        };
+    })();
+    
     function clamp(val, min, max) {
         if (val > max) val = max;
         if (val < min) val = min;
@@ -319,11 +399,6 @@ var Color = (function(){
     
     function isNull(v) {
         return (v==undefined) || isNaN(v) || !isFinite(v);
-    }
-    
-    /*** Error Handling ***/
-    function err(message) {
-        console.error(message);
     }
     
     /*** Static Properties ***/
