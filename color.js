@@ -103,18 +103,19 @@ var Color = (function(){
         };
         
         // Attach member functions
-        this.toString = function()  {return util.tostr(this);}
-        this.valueOf = function()   {return util.val(this);}
-        this.inv = function(c)      {return util.not(this);}
-        this.add = function(c)      {return util.add(this, c);}
-        this.avg = function(c)      {return util.avg(this, c);}
-        this.sub = function(c)      {return util.sub(this, c);}
-        this.not = function()       {return util.not(this);}
-        this.and = function(c)      {return util.and(this, c);}
-        this.or = function(c)       {return util.or(this, c);}
-        this.xor = function(c)      {return util.xor(this, c);}
-        this.rgb = function()       {return [this.r, this.g, this.b];}
-        this.rgba = function()       {return [this.r, this.g, this.b, this.r];}
+        this.toString = function()  {return util.tostr(this);};
+        this.valueOf = function()   {return util.val(this);};
+        this.inv = function(c)      {return util.not(this);};
+        this.add = function(c)      {return util.add(this, c);};
+        this.avg = function(c)      {return util.avg(this, c);};
+        this.sub = function(c)      {return util.sub(this, c);};
+        this.not = function()       {return util.not(this);};
+        this.and = function(c)      {return util.and(this, c);};
+        this.or = function(c)       {return util.or(this, c);};
+        this.xor = function(c)      {return util.xor(this, c);};
+        this.rgb = function()       {return [this.r, this.g, this.b];};
+        this.rgba = function()      {return [this.r, this.g, this.b, this.r];};
+        this.clone = function()     {return util.clone(this);};
     }
     
     /*** Utilities ***/
@@ -176,6 +177,10 @@ var Color = (function(){
         
         random: function random() {
             return new Color(Math.floor(Math.random()*BYTE3));
+        },
+        
+        clone: function clone(c) {
+            return new Color( c.r, c.g, c.b, c.a );
         }
     };
         
