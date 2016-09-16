@@ -25,19 +25,19 @@ var Color = (function(){
     /*** Constructor ***/
     function Color() {
         // Initialize default values
-        this.r=0;
-        this.g=0;
-        this.b=0;
-        this.a=1;
+        this._r=0;
+        this._g=0;
+        this._b=0;
+        this._a=1;
         
         var success = false;
         
         // If no arguments, set to default color
         if (arguments.length == 0) {
-            this.r = 0;
-            this.g = 0;
-            this.b = 0;
-            this.a = 1;
+            this._r = 0;
+            this._g = 0;
+            this._b = 0;
+            this._a = 1;
             
             success = true;
         }
@@ -48,9 +48,9 @@ var Color = (function(){
             if (vld.hex(c)) {
                 // Convert to rgb
                 var rgb = cnv.hex_rgb(c);
-                this.r = rgb.r;
-                this.g = rgb.g;
-                this.b = rgb.b;
+                this._r = rgb.r;
+                this._g = rgb.g;
+                this._b = rgb.b;
                 
                 success = true;
             }
@@ -59,31 +59,41 @@ var Color = (function(){
             else if (vld.int(c)) {
                 // Convert to rgb
                 var rgb = cnv.int_rgb(c);
-                this.r = rgb.r;
-                this.g = rgb.g;
-                this.b = rgb.b;
+                this._r = rgb.r;
+                this._g = rgb.g;
+                this._b = rgb.b;
+                
+                success = true;
+            }
+            
+            // HSL object
+            else if (typeof(c) == 'object' && !isNull(c.h) && !isNull(c.s) && !isNull(c.l) ) {
+                // Convert to rgb
+                var rgb = cnv.hsl_rgb(c.h, c.s, c.l);
+                this._r = rgb.r;
+                this._g = rgb.g;
+                this._b = rgb.b;
                 
                 success = true;
             }
             
             // RGB(A) object
             else if (typeof(c) == 'object') {
-                this.r = parse.byte(c.r);
-                this.g = parse.byte(c.g);
-                this.b = parse.byte(c.b);
-                this.a = parse.unit(c.a);
+                this._r = parse.byte(c._r||c.r);
+                this._g = parse.byte(c._g||c.g);
+                this._b = parse.byte(c._b||c.b);
+                this._a = parse.unit(!isNull(c._a) ? c._a : c.a);
                 
                 success = true;
             }
             
-            
         }
         // R,G,B(,A) arguments
         else if (arguments.length == 3 || arguments.length == 4) {
-            this.r = parse.byte(arguments[0]);
-            this.g = parse.byte(arguments[1]);
-            this.b = parse.byte(arguments[2]);
-            this.a = parse.unit(arguments[3]);
+            this._r = parse.byte(arguments[0]);
+            this._g = parse.byte(arguments[1]);
+            this._b = parse.byte(arguments[2]);
+            this._a = parse.unit(arguments[3]);
             
             success = true;
         }
@@ -94,18 +104,44 @@ var Color = (function(){
         
         // Computed values 
         this.hex = function(){
-            return cnv.rgb_hex(this.r, this.g, this.b);
+            return cnv.rgb_hex(this._r, this._g, this._b);
         };
         
         this.int = function(){
-            return cnv.rgb_int(this.r, this.g, this.b);
+            return cnv.rgb_int(this._r, this._g, this._b);
+        };
+        
+        this.r = function(v){
+            if (isNull(v))
+                return this._r;
+            this._r = v;
+            return this;
+        };
+        this.g = function(v){
+            if (isNull(v))
+                return this._g;
+            this._g = v;
+            return this;
+        };
+        this.b = function(v){
+            if (isNull(v))
+                return this._b;
+            this._b = v;
+            return this;
+        };
+        this.a = function(v){
+            if (isNull(v))
+                return this._a;
+            this._a = v;
+            return this;
         };
         
         // Attach member functions
         this.toString = function()    {return util.tostr(this);};
         this.valueOf = function()     {return util.val(this);};
-        this.rgb = function()         {return [this.r, this.g, this.b];};
-        this.rgba = function()        {return [this.r, this.g, this.b, this.r];};
+        this.rgb = function()         {return [this._r, this._g, this._b];};
+        this.rgba = function()        {return [this._r, this._g, this._b, this._r];};
+        this.hsl = function()         {return cnv.rgb_hsl(this._r, this._g, this._b);};
         
         this.inv = function(c)        {return util.not(this);};
         this.add = function(c)        {return util.add(this, c);};
@@ -131,8 +167,8 @@ var Color = (function(){
     /*** Utilities ***/
     var util = {
         tostr: function toString(c, fmt) {
-            if ( c.a<1 || (fmt && fmt == 'rgba') ) {
-                return 'rgba('+c.r+','+c.g+','+c.b+','+c.a+')';
+            if ( c._a<1 || (fmt && fmt == 'rgba') ) {
+                return 'rgba('+c._r+','+c._g+','+c._b+','+c._a+')';
             }
             else {
                 return '#' + c.hex();
@@ -145,27 +181,27 @@ var Color = (function(){
         
         add: function add(x,y) {
             return new Color(
-                x.r + y.r,
-                x.g + y.g,
-                x.b + y.b,
-                x.a + y.a
+                x._r + y._r,
+                x._g + y._g,
+                x._b + y._b,
+                x._a + y._a
             );
         },
         
         avg: function average(x,y) {
             var rgb = parse.rgb(
-                (x.r + y.r)/2,
-                (x.g + y.g)/2,
-                (x.b + y.b)/2
+                (x._r + y._r)/2,
+                (x._g + y._g)/2,
+                (x._b + y._b)/2
             );
             return new Color(rgb);
         },
         
         sub: function subtract(x,y) {
             return new Color(
-                x.r - y.r,
-                x.g - y.g,
-                x.b - y.b
+                x._r - y._r,
+                x._g - y._g,
+                x._b - y._b
             );
         },
         
@@ -190,7 +226,7 @@ var Color = (function(){
         },
         
         clone: function clone(c) {
-            return new Color( c.r, c.g, c.b, c.a );
+            return new Color( c._r, c._g, c._b, c._a );
         }
     };
         
@@ -221,9 +257,9 @@ var Color = (function(){
             return (
                 vld.hex(c.hex) &&
                 vld.int(c.int()) &&
-                vld.byte(c.r) &&
-                vld.byte(c.g) &&
-                vld.byte(c.b)
+                vld.byte(c._r) &&
+                vld.byte(c._g) &&
+                vld.byte(c._b)
             );
         }
     };
@@ -326,24 +362,85 @@ var Color = (function(){
         
         unit_byte: function unitToByte(n) {
             return parse.byte(n*BYTE);
+        },
+        
+        rgb_hsl: function(r,g,b){
+            var H = 0;
+            var S = 0;
+            var L = 0;
+            
+            var min = 255;
+            var max = 0;
+            var arr = [r,g,b];
+            
+            for (var i in arr) {
+                if (arr[i] > max) max = arr[i];
+                if (arr[i] < min) min = arr[i];
+            }
+            
+            var chroma = (max-min);
+            
+            var H = 0;
+            
+            if ( max == r ) {
+                H = ((g-b)/chroma) % 6;
+            }
+            else if (max == g) {
+                H = ((b-r)/chroma) + 2;
+            }
+            else if (max == b) {
+                H = ((r-g)/chroma) + 4;
+            }
+            
+            chroma = 100*chroma/255;
+            
+            H = 60*H;
+            if (H>360) H-=360;
+            if (H<0) H+=360;
+            
+            L = (100/255)*(max + min) / 2;
+            
+            S = chroma / ( 1 - Math.abs((L/50)-1) );
+            
+            return {
+                h: H,
+                s: S,
+                l: L
+            };
+        },
+        
+        hsl_rgb: function(h,s,l){
+            var chroma = (1 - Math.abs(l-1))*s;
+            var hue = h/60;
+            
+            var x = chroma*(100 - Math.abs(hue % 2 - 100));
+            
+            var r = 0;
+            var g = 0;
+            var b = 0;
+            
+            var m = l - chroma/2;
+            r+=m;
+            g+=m;
+            g+=m;
+            return {r:r, g:g, b:b};
         }
     };
 
     /*** Blending ***/
-    
     var blend = (function(){
         
         function makeBlender(op) {
             return function(x,y){
                 return new Color(
                     cnv.unit_byte( 
-                        op( cnv.byte_unit(x.r), cnv.byte_unit(y.r) )
+                        op( cnv.byte_unit(x._r), cnv.byte_unit(y._r) )
                     ),
                     cnv.unit_byte( 
-                        op( cnv.byte_unit(x.g), cnv.byte_unit(y.g) )
+                        op( cnv.byte_unit(x._g), cnv.byte_unit(y._g) )
                     ),
                     cnv.unit_byte( 
-                        op( cnv.byte_unit(x.b), cnv.byte_unit(y.b) )
+                        op( cnv.byte_unit(x._b), cnv.byte_unit(y._b) )
                     )
                 );
             };
@@ -390,7 +487,7 @@ var Color = (function(){
             
         };
     })();
-    
+        
     function clamp(val, min, max) {
         if (val > max) val = max;
         if (val < min) val = min;
@@ -443,56 +540,8 @@ var Color = (function(){
     return Color;
 })();
 
-// #19CB97
-// 162.4, 0.779, 0.447
-// 162.4 198.645, 113.985
 function getHSL(color) {
-    var H = 0;
-    var S = 0;
-    var L = 0;
     
-    var r = color.r;
-    var g = color.g;
-    var b = color.b;
-    
-    var min = 255;
-    var max = 0;
-    var arr = [r,g,b];
-    
-    for (var i in arr) {
-        if (arr[i] > max) max = arr[i];
-        if (arr[i] < min) min = arr[i];
-    }
-    
-    var chroma = parseFloat(max-min);
-    
-    var H = 0;
-    
-    if ( r>g && r>b ) {
-        H = ((g-b)/chroma) % 6;
-    }
-    else if (g>r && g>b) {
-        H = ((b-r)/chroma) + 2;
-    }
-    else if (b>r && b>g) {
-        H = ((r-g)/chroma) + 4;
-    }
-    
-    H = 60*H;
-    L = (max + min) / 2;
-    
-    if (L <= 127.5) {
-        S = 255*chroma/(2*L);
-    }
-    else {
-        S = 255*chroma/(2 - 2*L);
-    }
-    
-    return {
-        h: H,
-        s: S,
-        l: L
-    };
 }
 
 
